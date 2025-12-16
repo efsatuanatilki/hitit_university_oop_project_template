@@ -1,5 +1,6 @@
 # app/modules/module_1/implementations.py
 from app.modules.module_1.base import BaseClass1
+from datetime import datetime
 
 class Bus(Transport):
     
@@ -18,6 +19,18 @@ class Bus(Transport):
         self.dolu_koltuk = dolu_koltuk
         # Sefer bilgisi (otobüs nereye gidiyor?) 
         self.hedef_lokasyon = None
+        #sefer zamanlama bilgileri
+        self.sefer_baslangic_saati = 6  #sabah 06:00
+        self.sefer_bitis_saati=23  #akşam 23:00
+        self.sefer_araligi_dk = 20
+
+    def sefer_zamani_mi(self):
+        simdi=datetime.now()
+        if simdi.hour < self.sefer_baslangic_saati or simdi.hour>= self.sefer_bitis_saati:
+            print("Sefer saatleri aralığında değilsiniz (06:00 - 23:00).")
+            return 
+        if simdi.minute % 20 != 0:
+            print("Şu anda planlanan sefer saatine henüz ulaşılamadı.")
 
     #  Abstract metot override: sefer başlatma
     def sefer_baslat(self, hedef_lokasyon: str) :
@@ -31,6 +44,7 @@ class Bus(Transport):
 
         self.hedef_lokasyon = hedef_lokasyon
         self.durum = "seferde"
+
         print(f"[Bus {self.id}] Sefer başladı | Hat: {self.hat_no} | Hedef: {hedef_lokasyon}")
 
     #  Abstract metot override: sefer bitirme
@@ -48,38 +62,36 @@ class Bus(Transport):
         print(f"[Bus {self.id}] Sefer bitti | Yeni konum: {self.mevcut_lokasyon}")
 
     #  Abstract metot override: boş kapasite hesaplama
-    def bos_kapasite_hesapla(self) -> int:
+    def bos_kapasite_hesapla(self):
         bos = self.kapasite - self.dolu_koltuk
         if bos < 0:
             bos = 0
         return bos
 
     #  Nesne metodu örneği (nesne metodu)
-    def yolcu_bindir(self, sayi: int = 1) -> bool:
-        """
-        Yolcu bindirmeyi dener.
-        Yer yoksa False döner.
-        """
+    def yolcu_bindir(self, sayi: int = 1) :
         if sayi <= 0:
             return False
 
         if self.bos_kapasite_hesapla() >= sayi:
             self.dolu_koltuk += sayi
             return True
-
+        print("Yeterli boş koltuk olmadığı için yolcu bindirilemedi ")
         return False
 
     #  Nesne metodu örneği
-    def yolcu_indir(self, sayi: int = 1) -> None:
+    def yolcu_indir(self, sayi: int = 1) :
         if sayi <= 0:
+            print("İndirilecek yolcu sayısı geçersiz.")
             return
         self.dolu_koltuk -= sayi
         if self.dolu_koltuk < 0:
             self.dolu_koltuk = 0
+        print(f"{sayi} yolcu indirildi.Güncel dolu koltuk:{self.dolu_koltuk}")
 
     #  Sınıf metodu örneği (classmethod)
     @classmethod
-    def standart_otobus(cls, id: int, hat_no: str, mevcut_lokasyon: str = "Kampüs") -> "Bus":      # Hazır değerlerle hızlıca Bus üretmek için.
+    def standart_otobus(cls, id: int, hat_no: str, mevcut_lokasyon: str = "Kampüs"):      # Hazır değerlerle hızlıca Bus üretmek için.
 
         return cls(
             id=id,
@@ -90,8 +102,8 @@ class Bus(Transport):
             dolu_koltuk=0
         )
 
-    # ✅ Statik metot örneği (staticmethod)
+    # Statik metot örneği (staticmethod)
     @staticmethod
-    def hat_kodu_kontrol(hat_no: str) -> bool:  #Basit kontrol: boş olmasın ve en az 2 karakter olsun.
+    def hat_kodu_kontrol(hat_no: str) :  #Basit kontrol: boş olmasın ve en az 2 karakter olsun.
         
         return isinstance(hat_no, str) and len(hat_no.strip()) >= 2
