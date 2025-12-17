@@ -107,3 +107,93 @@ class Bus(Transport):
     def hat_kodu_kontrol(hat_no: str) :  #Basit kontrol: boş olmasın ve en az 2 karakter olsun.
         
         return isinstance(hat_no, str) and len(hat_no.strip()) >= 2
+
+    from app.modules.module_1.base import Transport
+
+
+class Bike(Transport):
+    
+    def __init__(
+        self,
+        id: int,
+        mevcut_lokasyon: str,
+        durum: str,
+        bisiklet_tipi: str = "normal",   # "normal" / "elektrikli" gibi
+        kirada_mi: bool = False
+    ):
+        # Bisiklet tek kişilik kabul edelim
+        super().__init__(id, kapasite=1, mevcut_lokasyon=mevcut_lokasyon, durum=durum)
+
+        # Bike'a özel alanlar
+        self.bisiklet_tipi = bisiklet_tipi
+        self.kirada_mi = kirada_mi
+
+        # Sefer bilgisi
+        self.hedef_lokasyon = None
+
+    # Abstract metot override: sefer başlatma
+    def sefer_baslat(self, hedef_lokasyon: str):
+        if self.durum == "bakimda":
+            print(f"[Bike {self.id}] Bakımda olduğu için kullanılamaz.")
+            return
+
+        if self.durum == "seferde":
+            print(f"[Bike {self.id}] Zaten kullanımda.")
+            return
+
+        if self.kirada_mi:
+            print(f"[Bike {self.id}] Zaten kirada görünüyor.")
+            return
+
+        self.hedef_lokasyon = hedef_lokasyon
+        self.durum = "seferde"
+        self.kirada_mi = True
+
+        print(f"[Bike {self.id}] Kullanım başladı | Tip: {self.bisiklet_tipi} | Hedef: {hedef_lokasyon}")
+
+    # Abstract metot override: sefer bitirme
+    def sefer_bitir(self):
+        if self.durum != "seferde":
+            print(f"[Bike {self.id}] Şu an kullanımda değil.")
+            return
+
+        if self.hedef_lokasyon is not None:
+            self.mevcut_lokasyon = self.hedef_lokasyon
+
+        self.hedef_lokasyon = None
+        self.durum = "bos"
+        self.kirada_mi = False
+
+        print(f"[Bike {self.id}] Kullanım bitti | Yeni konum: {self.mevcut_lokasyon}")
+
+    # Abstract metot override: boş kapasite hesaplama
+    def bos_kapasite_hesapla(self):
+        # Bisiklet tek kişilik: kiradaysa 0, değilse 1
+        return 0 if self.kirada_mi else 1
+
+    # Nesne metodu örneği: bakıma al / çıkar
+    def bakima_al(self):
+        if self.durum == "seferde":
+            print(f"[Bike {self.id}] Kullanımdayken bakıma alınamaz.")
+            return
+        self.durum = "bakimda"
+        print(f"[Bike {self.id}] Bakıma alındı.")
+
+    def bakimdan_cikar(self):
+        if self.durum != "bakimda":
+            return
+        self.durum = "bos"
+        print(f"[Bike {self.id}] Bakımdan çıktı, kullanıma hazır.")
+
+    # Classmethod örneği: hızlıca bisiklet üret
+    @classmethod
+    def standart_bisiklet(cls, id: int, mevcut_lokasyon: str = "Kampüs"):
+        return cls(
+            id=id,
+            mevcut_lokasyon=mevcut_lokasyon,
+            durum="bos",
+            bisiklet_tipi="normal",
+            kirada_mi=False
+        )
+
+   

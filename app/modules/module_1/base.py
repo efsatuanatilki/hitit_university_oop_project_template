@@ -3,29 +3,18 @@ from abc import ABC, abstractmethod
 
 
 class Transport(ABC):
-    """
-    Ulaşım Modülü base class'ı.
-    Bu sınıftan türeyen her araç (Bus, Shuttle, Bike/Scooter) aynı temel kurallara uyar.
-    """
-
+    
+# Ulaşım Modülü base class'ı. Bu sınıftan türeyen her araç (Bus, Shuttle, Bike/Scooter) aynı temel kurallara uyar.
+    
     def __init__(self, id: int, kapasite: int, mevcut_lokasyon: str, durum: str):
-        # Araç benzersiz id
+    
         self.id = id
-
-        # Araç kapasitesi (otobüs için koltuk sayısı gibi)
         self.kapasite = kapasite
-
-        # Araç şu an nerede?
         self.mevcut_lokasyon = mevcut_lokasyon
-
-        # Durum örn: "bos", "seferde", "bakimda"
         self.durum = durum
 
     @abstractmethod
     def sefer_baslat(self, hedef_lokasyon: str) -> None:
-        """
-        Seferi başlatır. Subclass kendi mantığına göre durum/lokasyon vb. yönetir.
-        """
         pass
 
     @abstractmethod
