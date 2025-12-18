@@ -15,15 +15,60 @@ class Bus(Transport):
         dolu_koltuk: int = 0
     ):
         super().__init__(id, kapasite, mevcut_lokasyon, durum)
-        self.hat_no = hat_no
-        self.dolu_koltuk = dolu_koltuk
-        # Sefer bilgisi (otobüs nereye gidiyor?) 
-        self.hedef_lokasyon = None
-        #sefer zamanlama bilgileri
-        self.sefer_baslangic_saati = 6  #sabah 06:00
-        self.sefer_bitis_saati=23  #akşam 23:00
-        self.sefer_araligi_dk = 20
+        self.__hat_no = None
+        self.__dolu_koltuk = None
 
+        # Sefer bilgisi (otobüs nereye gidiyor?) 
+        self.__hedef_lokasyon = None
+        #sefer zamanlama bilgileri
+        self.__sefer_baslangic_saati = 6  #sabah 06:00
+        self.__sefer_bitis_saati=23  #akşam 23:00
+        self.__sefer_araligi_dk = 20
+
+        self.hat_no= hat_no
+        self.dolu_koltuk=dolu_koltuk
+    
+    @property
+    def hat_no(self):
+        return self.__hat_no
+    @hat_no.setter
+    def hat_no(self,value:str):
+        if not isinstance(value,str) or len(value.strip()) < 2:
+            raise ValueError("Hat no boş olamaz ve en az 2 karakter olmalıdır.")
+        self.__hat_no = value.strip()
+
+    @property
+    def dolu_koltuk(self,):
+        return self.__dolu_koltuk
+    @dolu_koltuk.setter
+    def dolu_koltuk(self,value:int):
+        if not isinstance(value,int) or value <0:
+            raise ValueError("Dolu koltuk 0 veya daha büyük bir int olmalıdır")
+        if value > self.kapasite:
+            raise ValueError("Dolu koltuk kapasiteden büyük olamaz.")
+        self.__dolu_koltuk=value
+
+    @property
+    def hedef_lokasyon(self):
+        return self.__hedef_lokasyon
+    @hedef_lokasyon.setter
+    def hedef_lokasyon(self,value:str):
+        if value is None:
+            return
+        if not isinstance(value,str) or not value.strip():
+            raise ValueError("Hedef Lokasyon boş olamaz.")
+        self.__hedef_lokasyon=value.strip()
+
+    @property
+    def sefer_baslangic_saati(self):                        #sefer saatleri private tutuldu property ile sadece okunabilir yapıldı.
+        return self.__sefer_baslangic_saati
+    @property
+    def sefer_bitis_saati(self):
+        return self.__sefer_bitis_saati
+    @property
+    def sefer_araligi_dk(self):
+        return self.__sefer_araligi_dk
+    
     def sefer_zamani_mi(self):
         simdi=datetime.now()
         if simdi.hour < self.sefer_baslangic_saati or simdi.hour>= self.sefer_bitis_saati:
@@ -31,6 +76,29 @@ class Bus(Transport):
             return 
         if simdi.minute % 20 != 0:
             print("Şu anda planlanan sefer saatine henüz ulaşılamadı.")
+
+    def otomatik_sefer_kontrol(self, hedef_lokasyon: str, simdi: datetime | None = None):
+        """
+        Servis katmanı bunu periyodik çağırır.
+        Sefer zamanı geldiyse ve otobüs boşsa seferi başlatır.
+        Başlattıysa True döner, başlamadıysa False.
+        """
+        # bakımda ise otomatik de başlatmayalım
+        if self.durum == "bakimda":
+            return False
+
+        # zaten seferdeyse tekrar başlatmasın
+        if self.durum == "seferde":
+            return False
+
+        # zaman uygun değilse çık
+        if not self.sefer_zamani_mi(simdi):
+            return False
+
+        # zaman uygunsa sefer başlat
+        self.sefer_baslat(hedef_lokasyon)
+        return True
+
 
     #  Abstract metot override: sefer başlatma
     def sefer_baslat(self, hedef_lokasyon: str) :
@@ -125,11 +193,43 @@ class Bike(Transport):
         super().__init__(id, kapasite=1, mevcut_lokasyon=mevcut_lokasyon, durum=durum)
 
         # Bike'a özel alanlar
-        self.bisiklet_tipi = bisiklet_tipi
-        self.kirada_mi = kirada_mi
+        self.__bisiklet_tipi = None
+        self.__kirada_mi = None
+         # Sefer bilgisi
+        self.__hedef_lokasyon = None
+        
+        self.bisiklet_tipi= bisiklet_tipi
+        self.kirada_mi= kirada_mi
 
-        # Sefer bilgisi
-        self.hedef_lokasyon = None
+    @property
+    def bisiklet_tipi(self):
+        return self.__bisiklet_tipi
+    @bisiklet_tipi.setter
+    def bisiklet_tipi(self,value:str):
+        if value not in {"noemal","elektrikli"}:
+            raise ValueError("bisiklet 'tipi normal' veya 'elektrikli' olmalı.")
+        self.__bisiklet_tipi=value
+    
+    @property
+    def kirada_mi(self):
+        return self.__kirada_mi
+    @kirada_mi.setter
+    def kirada_mi(self,value:bool):
+        if not isinstance(value,bool):
+            raise ValueError("kirada mi bool olmalı")
+        self.__kirada_mi=value
+
+    @property
+    def hedef_lokasyon(self):
+        return self.__hedef_lokasyon
+    @hedef_lokasyon.setter
+    def hedef_lokasyon(self,value:str):
+        if value is None:
+            self.__hedef_lokasyon=None
+            return
+        if not isinstance(value,str) or not value.strip():
+            raise ValueError("Hedef Lokasyon boş olamaz.")
+        self.__hedef_lokasyon= value.strip()
 
     # Abstract metot override: sefer başlatma
     def sefer_baslat(self, hedef_lokasyon: str):
