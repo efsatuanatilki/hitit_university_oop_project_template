@@ -1,6 +1,8 @@
 # app/modules/module_1/implementations.py
 from app.modules.module_1.base import Transport
 from datetime import datetime
+from dataclasses import dataclass
+from typing import Any
 
 class Bus(Transport):
     
@@ -81,7 +83,7 @@ class Bus(Transport):
         if simdi.hour < self.sefer_baslangic_saati or simdi.hour>= self.sefer_bitis_saati:
             print("Sefer saatleri aralığında değilsiniz (06:00 - 23:00).")
             return False
-        if simdi.minute % 20 != 0:
+        if simdi.minute % self.__sefer_araligi_dk != 0:
             print("Şu anda planlanan sefer saatine henüz ulaşılamadı.")
             return False
         return True
@@ -97,7 +99,7 @@ class Bus(Transport):
             return False
 
         # zaman uygun değilse çık
-        if not self.sefer_zamani_mi(simdi):
+        if not self.sefer_zamani_mi():
             return False
 
         # zaman uygunsa sefer başlat
@@ -190,9 +192,6 @@ class Bus(Transport):
         
         return isinstance(hat_no, str) and len(hat_no.strip()) >= 2
 
-    from app.modules.module_1.base import Transport
-
-
 class Bike(Transport):
     
     def __init__(
@@ -201,7 +200,7 @@ class Bike(Transport):
         mevcut_lokasyon: str,
         durum: str,
         bisiklet_tipi: str ,   # "normal" / "elektrikli" gibi
-        kirada_mi: bool ,
+        kirada_mi: bool 
         
     ):
         # Bisiklet tek kişilik kabul edelim
@@ -318,13 +317,9 @@ class Bike(Transport):
         bisiklet_tipi=tip,
         kirada_mi=False
     )
-from __future__ import annotations
-from datetime import datetime
-
-from app.modules.module_1.base import BaseClass1
 
 class Shuttle(Transport):
-     def __init__(
+    def __init__(
         self,
         id:int,
         kapasite: int,
@@ -334,122 +329,117 @@ class Shuttle(Transport):
         bitis_duragi:str,
         dolu_koltuk:int
         ):
-        
+
         super().__init__(id,kapasite,mevcut_lokasyon,durum)
         self.__baslangic_duragi = None
         self.__bitis_duragi = None
         self.__dolu_koltuk = None
-        self.__hedef_lokasyon = None
-
+        self.__hedef_lokasyon = None    
         self.__sefer_baslangic_saati = 7
-        self.__sefer_bitis_saatii = 22
-        self.__sefer_araligi_dk = 15
-
+        self.__sefer_bitis_saati = 22
+        self.__sefer_araligi_dk = 15    
         self.__baslangic_duragi = baslangic_duragi
         self.__bitis_duragi = bitis_duragi
-        self.__dolu_koltuk=dolu_koltuk
-
-@property
-def baslangic_duragi(self):
-    return self.__baslangic_duragi
-@baslangic_duragi.setter
-def baslangic_duragi(self,durak):
-    if not isinstance(durak,str):
-        raise ValueError("Baslangıç durağı metin olmalıdır")
-    durak=durak.strip()
-    if durak =="":
-        raise ValueError("Başlangıç durağı boş olamaz")
-    self.__baslangic_duragi = durak
-
-@property
-def bitis_duragi(self):
-    return self.__bitis_duragi
-@bitis_duragi.setter
-def bitis_duragi(self,durak):
-    if not isinstance(durak,str):
-        raise ValueError("Bitiş durağı metin olmalıdır")
-    durak=durak.strip()
-    if durak=="":
-        raise ValueError("Bitiş durağı boş olamaz.")
+        self.__dolu_koltuk=dolu_koltuk  
+    @property
+    def baslangic_duragi(self):
+        return self.__baslangic_duragi
+    @baslangic_duragi.setter
+    def baslangic_duragi(self,durak):
+        if not isinstance(durak,str):
+            raise ValueError("Baslangıç durağı metin olmalıdır")
+        durak=durak.strip()
+        if durak =="":
+            raise ValueError("Başlangıç durağı boş olamaz")
+        self.__baslangic_duragi = durak
     
-@property
-def dolu_koltuk(self):
-    return self.__dolu_koltuk 
-@dolu_koltuk.setter
-def dolu_koltuk(self,sayi):
-    if not isinstance(sayi,int):
-        raise ValueError("dolu koltuk int olmalıdır.")
-    if sayi<0:
-        raise ValueError("dolu koltuk negatif olamaz.")
-    if sayi>self.kapasite:
-        raise ValueError("Kapasite aşılamaz.")
-    self.__dolu_koltuk= sayi
+    @property
+    def bitis_duragi(self):
+        return self.__bitis_duragi
+    @bitis_duragi.setter
+    def bitis_duragi(self,durak):
+        if not isinstance(durak,str):
+            raise ValueError("Bitiş durağı metin olmalıdır")
+        durak=durak.strip()
+        if durak=="":
+            raise ValueError("Bitiş durağı boş olamaz.")
+        self.__bitis_duragi=durak
 
-@staticmethod
-def saat_uygun_mu(baslangic_saat: int, bitis_saat: int) -> bool:
+    @property
+    def dolu_koltuk(self):
+        return self.__dolu_koltuk 
+    @dolu_koltuk.setter
+    def dolu_koltuk(self,sayi):
+        if not isinstance(sayi,int):
+            raise ValueError("dolu koltuk int olmalıdır.")
+        if sayi<0:
+            raise ValueError("dolu koltuk negatif olamaz.")
+        if sayi>self.kapasite:
+            raise ValueError("Kapasite aşılamaz.")
+        self.__dolu_koltuk= sayi
+
+    @staticmethod
+    def saat_uygun_mu(baslangic_saat: int, bitis_saat: int) -> bool:
         simdiki_saat = datetime.now().hour
         return baslangic_saat <= simdiki_saat < bitis_saat
-
-def binis_yap(self,kisi_sayisi):
-    if not isinstance(kisi_sayisi,int) or kisi_sayisi<=0:
-        raise ValueError("kişi sayısı pozitif int olmalıdır.")
-    if self.__dolu_koltuk + kisi_sayisi > self.kapasite:
-        raise ValueError("Kapasite Aşılamaz.")
-    self.__dolu_koltuk += kisi_sayisi
-
-def inis_yap(self,kisi_sayisi):
-    if not isinstance(kisi_sayisi,int) or kisi_sayisi<=0:
-        raise ValueError("kişi sayısı pozitif int olmalıdır.")
-    if self.__dolu_koltuk - kisi_sayisi <0:
-        raise ValueError("İnen Kişi sayısı dolu koltuktan fazla olamaz.")
-    self.__dolu_koltuk -= kisi_sayisi
-
-def sefer_baslat(self,hedef_lokasyon:str):
-    if not Shuttle.saat_uygun_mu(self.__sefer_baslangic_saati , self.__sefer_bitis_saati):
-        print( f"[Shuttle {self.id}] Sefer saatleri dışında! (07:00 - 22:00)")
-        return
-    if self.durum == "bakimda":
-        print(f"[Shuttle {self.id}] Bakımda olduğu için sefer başlatılamaz.")
-        return
-
-    if self.durum == "seferde":
-        print(f"[Shuttle {self.id}] Zaten seferde.")
-        return
-
-    if not self.hedef_gecerli_mi(hedef_lokasyon):
-        print(
-            f"[Shuttle {self.id}] Hedef geçersiz! "
-            f"Sadece '{self.__baslangic_duragi}' veya '{self.__bitis_duragi}' olabilir."
-        )
-        return
-
-    self.__hedef_lokasyon = hedef_lokasyon
-    self.durum = "seferde"
-
-    print(
-            f"[Shuttle {self.id}] Sefer başladı | "
-            f"{self.__baslangic_duragi} <-> {self.__bitis_duragi} | "
-            f"Hedef: {hedef_lokasyon} | "
-            f"Aralık: {self.__sefer_araligi_dk} dk"
-        )
     
-def sefer_bitir(self):
-        self.durum = "beklemede"
-        self.__hedef_lokasyon = None
-        print(f"[Shuttle {self.id}] Sefer bitti, beklemede.")
-
-@classmethod
-def shuttle_olustur(cls, id: int):
-        return cls(
-            id=id,
-            kapasite=20,
-            mevcut_lokasyon="Yurtlar",
-            durum="beklemede",
-            baslangic_duragi="Yurtlar",
-            bitis_duragi="Kampüs",
-            dolu_koltuk=0
-        )
-
+    def binis_yap(self,kisi_sayisi):
+        if not isinstance(kisi_sayisi,int) or kisi_sayisi<=0:
+            raise ValueError("kişi sayısı pozitif int olmalıdır.")
+        if self.__dolu_koltuk + kisi_sayisi > self.kapasite:
+            raise ValueError("Kapasite Aşılamaz.")
+        self.__dolu_koltuk += kisi_sayisi
+    
+    def inis_yap(self,kisi_sayisi):
+        if not isinstance(kisi_sayisi,int) or kisi_sayisi<=0:
+            raise ValueError("kişi sayısı pozitif int olmalıdır.")
+        if self.__dolu_koltuk - kisi_sayisi <0:
+            raise ValueError("İnen Kişi sayısı dolu koltuktan fazla olamaz.")
+        self.__dolu_koltuk -= kisi_sayisi
+    
+    def sefer_baslat(self,hedef_lokasyon:str):
+        if not Shuttle.saat_uygun_mu(self.__sefer_baslangic_saati , self.__sefer_bitis_saati):
+            print( f"[Shuttle {self.id}] Sefer saatleri dışında! (07:00 - 22:00)")
+            return
+        if self.durum == "bakimda":
+            print(f"[Shuttle {self.id}] Bakımda olduğu için sefer başlatılamaz.")
+            return
+    
+        if self.durum == "seferde":
+            print(f"[Shuttle {self.id}] Zaten seferde.")
+            return
+    
+        if self.mevcut_lokasyon==self.__baslangic_duragi:
+            self.__hedef_lokasyon= self.__bitis_duragi
+        else:
+            self.__hedef_lokasyon= self.__baslangic_duragi
+    
+        self.durum = "seferde"
+    
+        print(
+                f"[Shuttle {self.id}] Sefer başladı | "
+                f"{self.__baslangic_duragi} <-> {self.__bitis_duragi} | "
+                f"Hedef: {hedef_lokasyon} | "
+                f"Aralık: {self.__sefer_araligi_dk} dk"
+            )
+        
+    def sefer_bitir(self):
+            self.durum = "beklemede"
+            self.__hedef_lokasyon = None
+            print(f"[Shuttle {self.id}] Sefer bitti, beklemede.")
+    
+    @classmethod
+    def shuttle_olustur(cls, id: int):
+            return cls(
+                id=id,
+                kapasite=20,
+                mevcut_lokasyon="Yurtlar",
+                durum="beklemede",
+                baslangic_duragi="Yurtlar",
+                bitis_duragi="Kampüs",
+                dolu_koltuk=0
+            )
+    
 from dataclasses import dataclass
 from datetime import datetime
 from typing import  Any
@@ -514,7 +504,7 @@ class KiralamaKaydi:
     kullanici:str
     bisiklet_id:int
     alma_noktasi:str
-    bırakma_noktasi:str| None
+    birakma_noktasi:str| None
     baslangic_zamani: datetime
     bitis_zamani: datetime|None
     ucret:float
@@ -540,124 +530,125 @@ class UlasimServisi:
 
         self._siradaki_bilet_id =1
         self._siradaki_kiralama_id =1
-        #Ücretler(static)
-        @staticmethod
-        def otobus_ucreti():
-            return 10.0
-        @staticmethod
-        def shuttle_ucreti():
-            return 8.0
-        @staticmethod
-        def bisiklet_saatlik_ucret():
-            return 5.0
-#Bakiye İşlemleri
-def bakiye_yukle(self,kullanici:str,tutar:float):
-    cuzdan:KampusCuzdani=self._cuzdan_repo.getir_veya_olustur(kullanici)
-    return cuzdan.bilgi()
+    #Ücretler(static)
+    @staticmethod
+    def otobus_ucreti():
+        return 10.0
+    @staticmethod
+    def shuttle_ucreti():
+        return 8.0
+    @staticmethod
+    def bisiklet_saatlik_ucret():
+        return 5.0
+    #Bakiye İşlemleri
+    def bakiye_yukle(self,kullanici:str,tutar:float):
+        cuzdan:KampusCuzdani = self._cuzdan_repo.getir_veya_olustur(kullanici)
+        cuzdan.bakiye_yukle(tutar)
+        return cuzdan.bilgi()
+    
+    #Bus/Shuttle Bilet kesme(anlık biniş)
+    def bilet_kes(self,kullanici:str,arac_id:int,binis:str,inis:str):
+        arac = self._arac_repo.id_ile_bul(arac_id)
+        if arac is None:
+            raise ValueError("Araç bulunamadı.")
+        #Araç türü
+        if isinstance(arac, Bus):
+            ucret = self.otobus_ucreti()
+            arac_turu = "Bus"
+        elif isinstance(arac, Shuttle):
+            ucret= self.shuttle_ucreti()
+            arac_turu= "Shuttle"
+        else:
+            raise ValueError("Bu araç için bilet kesilmez")
+            
+        #kapasite kontrol
+        if arac.dolu_koltuk >= arac.kapasite:
+            raise ValueError("Araç dolu.")
+        
+        #ödeme
+        cuzdan = self._cuzdan_repo.getir_veya_olustur(kullanici)
+        if not cuzdan.harca(ucret):
+            raise ValueError("Yetersiz Bakiye.")
+        
+        arac.dolu_koltuk+=1
+        arac.sefer_baslat(inis)
 
-#Bus/Shuttle Bilet kesme(anlık biniş)
-def bilet_kes(self,kullanici:str,arac_id:int,binis:str,inis:str):
-    arac = self._arac_repo.id_ile_bul(arac_id)
-    if arac is None:
-        raise ValueError("Araç bulunamadı.")
-    #Araç türü
-    if "Bus" in arac.__class__.__name__:
-        ucret = self.otobus_ucreti()
-        arac_turu = "Bus"
-    elif "Shuttle" in arac.__class__.__name__:
-        ucret= self.shuttle_ucreti()
-        arac_turu= "Shuttle"
-    else:
-        raise ValueError("Bu araç için bilet kesilmez")
+        #Bilet kaydı oluştur
+        bilet = Bilet(
+                id=self._siradaki_bilet_id,
+                kullanici=kullanici,
+                arac_id=arac_id,
+                arac_turu=arac_turu,
+                binis_noktasi=binis,
+                inis_noktasi=inis,
+                ucret=ucret,
+                olusturma_zamani=datetime.now()
+            )
+        self._siradaki_bilet_id += 1
+        self._bilet_repo.ekle(bilet)
+        return bilet
     
-    #kapasite kontrol
-    if arac.dolu_koltuk >= arac.kapasite:
-        raise ValueError("Araç dolu.")
+    def bisiklet_kirala(self,kullanici: str, bisiklet_id: int, alma_noktasi: str):
+        bisiklet = self._arac_repo.id_ile_bul(bisiklet_id)
+        if bisiklet is None:
+            raise ValueError("Bisiklet yok.")
+        if bisiklet.kirada_mi:
+            raise ValueError("Bisiklet şu an kirarda.")
+        
+        bisiklet.kirada_mi = True
+        bisiklet.durum = "Kirada"
     
-    #ödeme
-    ucret = self.otobus_ucreti()
-    cuzdan = self.cuzdan_repo.getir_veya_olustur(kullanici)
-    if not cuzdan.harca(ucret):
-        raise ValueError("Yetersiz Bakiye.")
-    
-    arac.dolu_koltuk+=1
-    arac.sefer_baslat(inis)
-
-#Bilet kaydı oluştur
-    Bilet = Bilet(
-            id=self.siradaki_bilet_id,
+        Kayit= KiralamaKaydi(
+            id =self._siradaki_kiralama_id,
             kullanici=kullanici,
-            arac_id=arac_id,
-            arac_turu=arac_turu,
-            binis_noktasi=binis,
-            inis_noktasi=inis,
-            ucret=ucret,
-            olusturma_zamani=datetime.now()
-    )
-    self.siradaki_bilet_id += 1
-    self.bilet_repo.ekle(Bilet)
-    return Bilet
-def bisiklet_kirala(self,kullanici: str, bisiklet_id: int, alma_noktasi: str):
-    bisiklet = self.arac_repo.id_ile_bul(bisiklet_id)
-    if bisiklet is None:
-        raise ValueError("Bisiklet yok.")
-    if bisiklet.kirada_mi:
-        raise ValueError("Bisiklet şu an kirarda.")
+            bisiklet_id=bisiklet_id,
+            alma_noktasi=alma_noktasi,
+            birakma_noktasi=None,
+            baslangic_zamani=datetime.now(),
+            bitis_zamani=None,
+            ucret=0.0,
+            durum="Aktif")
+        self._siradaki_kiralama_id +=1
+        self._kiralama_repo.ekle(Kayit)
+        return Kayit
     
-    bisiklet.kirada_mi = True
-    bisiklet.durum = "Kirada"
-
-    Kayıt= KiralamaKaydi(
-        id =self.siradaki_kiralama_id,
-        kullanici=kullanici,
-        bisiklet_id=bisiklet_id,
-        alma_noktasi=alma_noktasi,
-        birakma_noktasi=None,
-        baslangic_zamani=datetime.now(),
-        bitis_zamani= None,
-        ucret=0.0,
-        durum="Aktif")
-    self.siradaki_kiralama_id +=1
-    self.kiralama_repo.ekle(Kayıt)
-    return Kayıt
-
-def bisiklet_teslim_et(self,kullanici:str,kiralama_id:int,birakma_noktasi:str):
-    Kayıt = self.kiralama_repo.id_ile_bul(kiralama_id)
-    if Kayıt is None:
-        raise ValueError("Kiralama kaydı yok.")
-    if Kayıt.durum != "Aktif":
-        raise ValueError("Bu kiralama zaten bitmiş.")
-    if Kayıt.kullanici != kullanici:
-        raise ValueError("Bu kiralama bu kullanıcıya ait değil.")
-    #Süre Hesapla
-    bitis= datetime.now()
-    gecen_saniye = (bitis - Kayıt.baslangic_zamani).total_seconds()
-    saat = int(gecen_saniye/3600)
-
-    if gecen_saniye % 3600 != 0 or saat == 0:
-        saat +=1
-    #ücret
-    ucret= saat * self.bisiklet_saatlik_ucret()
-    #ödeme
-    cuzdan = self.cuzdan_repo.getir_veya_olustur(kullanici)
-    if not cuzdan.harca(ucret):
-        raise ValueError("Yetersiz bakiye.")
-    #kaydı bitir
-    Kayıt.bitis_zamani = bitis
-    Kayıt.birakma_noktasi=birakma_noktasi
-    Kayıt.ucret=float(ucret)
-    Kayıt.durum= "Bitti"
-
-    bisiklet = self.arac_repo.id_ile_bul(Kayıt.bisiklet_id)
-    bisiklet.kirada_mi = False
-    bisiklet.durum = "bos"
-    bisiklet.mevcut_lokasyon = birakma_noktasi
-
-    return Kayıt
-
-
-
-
+    def bisiklet_teslim_et(self,kullanici:str,kiralama_id:int,birakma_noktasi:str):
+        Kayit = self._kiralama_repo.id_ile_bul(kiralama_id)
+        if Kayit is None:
+            raise ValueError("Kiralama kaydı yok.")
+        if Kayit.durum != "Aktif":
+            raise ValueError("Bu kiralama zaten bitmiş.")
+        if Kayit.kullanici != kullanici:
+            raise ValueError("Bu kiralama bu kullanıcıya ait değil.")
+        #Süre Hesapla
+        bitis= datetime.now()
+        gecen_saniye = (bitis - Kayit.baslangic_zamani).total_seconds()
+        saat = int(gecen_saniye/3600)
+    
+        if gecen_saniye % 3600 != 0 or saat == 0:
+            saat +=1
+        #ücret
+        ucret= saat * self.bisiklet_saatlik_ucret()
+        #ödeme
+        cuzdan = self._cuzdan_repo.getir_veya_olustur(kullanici)
+        if not cuzdan.harca(ucret):
+            raise ValueError("Yetersiz bakiye.")
+        #kaydı bitir
+        Kayit.bitis_zamani = bitis
+        Kayit.birakma_noktasi=birakma_noktasi
+        Kayit.ucret=float(ucret)
+        Kayit.durum= "Bitti"
+    
+        bisiklet = self._arac_repo.id_ile_bul(Kayit.bisiklet_id)
+        bisiklet.kirada_mi = False
+        bisiklet.durum = "bos"
+        bisiklet.mevcut_lokasyon = birakma_noktasi
+    
+        return Kayit
+    
+    
+    
+    
 
 
     
