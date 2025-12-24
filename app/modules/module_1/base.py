@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 
 class Transport(ABC):
+    ORTAK_DURUMLAR = {"bos","seferde","bakimda"}
     
 # Ulaşım Modülü base class'ı. Bu sınıftan türeyen her araç (Bus, Shuttle, Bike/Scooter) aynı temel kurallara uyar.
     
@@ -17,6 +18,11 @@ class Transport(ABC):
         self.kapasite=kapasite
         self.mevcut_lokasyon=mevcut_lokasyon
         self.durum=durum
+
+    @classmethod
+    def gecerli_durumlar(cls) -> set[str]:
+        # Subclass isterse üzerine ekleyebilir (override edebilir)
+        return set(cls.ORTAK_DURUMLAR)
     
     @property
     def id(self):
@@ -25,7 +31,7 @@ class Transport(ABC):
     def id(self,value:int):
         if not isinstance(value,int) or value <=0:
             raise ValueError("id pozitif bir int olmalıdır")
-        self__id=value
+        self.__id=value
     
     @property
     def kapasite(self):
@@ -40,19 +46,27 @@ class Transport(ABC):
     def mevcut_lokasyon(self):
         return self.__mevcut_lokasyon
     @mevcut_lokasyon.setter
-    def mevcut_lokasyon(self,value:str):
-        if not isinstance(value,str) or not value.strip():
+    def mevcut_lokasyon(self, value: str):
+        if not isinstance(value, str) or not value.strip():
             raise ValueError("Mevcut Lokasyon boş olamaz!")
-        self.__mevcut_lokasyon=value.strip()
+        self.__mevcut_lokasyon = value.strip()
+
 
     @property
     def durum(self):
         return self.__durum
     @durum.setter
-    def durum(self,value:str):
-        if not isinstance(value,str) or not value.strip():
-            raise ValueError("Mevcut Lokasyon boş olamaz!")
-        self.__durum=value.strip()
+    def durum(self, value: str):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("Durum boş olamaz!")
+
+        value = value.strip().lower()
+
+        if value not in self.gecerli_durumlar():
+            raise ValueError(f"Geçersiz durum: {value}. Geçerli durumlar: {self.gecerli_durumlar()}")
+
+        self.__durum = value
+
 
     @abstractmethod
     def sefer_baslat(self, hedef_lokasyon: str) -> None:
